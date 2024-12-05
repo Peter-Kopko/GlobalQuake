@@ -16,25 +16,36 @@ import java.util.concurrent.Executors;
 
 public class EarthquakeArchive {
 
-    public static final File ARCHIVE_FILE = new File(GlobalQuake.mainFolder, "volume/archive.dat");
-    public static final File TEMP_ARCHIVE_FILE = new File(GlobalQuake.mainFolder, "volume/temp_archive.dat");
+    private static final File ARCHIVE_FILE = new File(GlobalQuake.mainFolder, "volume/archive.dat");
+    private static final File PLAYGROUND_ARCHIVE_FILE = new File(GlobalQuake.mainFolder, "volume/playground_archive.dat");
+    private static final File TEMP_ARCHIVE_FILE = new File(GlobalQuake.mainFolder, "volume/temp_archive.dat");
     private final ExecutorService executor;
 
     private List<ArchivedQuake> archivedQuakes = new MonitorableCopyOnWriteArrayList<>();
 
     private final Map<UUID, ArchivedQuake> uuidArchivedQuakeMap = new ConcurrentHashMap<>();
+    private boolean servesPlayground = false;
 
     public EarthquakeArchive() {
         executor = Executors.newSingleThreadExecutor();
     }
 
+    private File chooseFile() {
+        if (servesPlayground) {
+            return PLAYGROUND_ARCHIVE_FILE;
+        } else {
+            return ARCHIVE_FILE;
+        }
+    }
+
     @SuppressWarnings("unchecked")
     public EarthquakeArchive loadArchive() {
-        if (!ARCHIVE_FILE.exists()) {
+        File currentFile = chooseFile();
+        if (!currentFile.exists()) {
             Logger.info("Created new archive");
         } else {
             try {
-                ObjectInputStream oin = new ObjectInputStream(new FileInputStream(ARCHIVE_FILE));
+                ObjectInputStream oin = new ObjectInputStream(new FileInputStream(currentFile));
                 archivedQuakes = (MonitorableCopyOnWriteArrayList<ArchivedQuake>) oin.readObject();
                 oin.close();
                 Logger.info("Loaded " + archivedQuakes.size() + " quakes from archive.");
@@ -56,13 +67,14 @@ public class EarthquakeArchive {
     }
 
     public void saveArchive() {
+        File currentFile = chooseFile();
         if (archivedQuakes != null) {
             try {
                 ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(TEMP_ARCHIVE_FILE));
-                Logger.info("Saving " + archivedQuakes.size() + " quakes to " + ARCHIVE_FILE.getName());
+                Logger.info("Saving " + archivedQuakes.size() + " quakes to " + currentFile.getName());
                 out.writeObject(archivedQuakes);
                 out.close();
-                boolean res = (!ARCHIVE_FILE.exists() || ARCHIVE_FILE.delete()) && TEMP_ARCHIVE_FILE.renameTo(ARCHIVE_FILE);
+                boolean res = (!currentFile.exists() || currentFile.delete()) && TEMP_ARCHIVE_FILE.renameTo(currentFile);
                 if (!res) {
                     Logger.error("Unable to save archive!");
                 } else {
@@ -139,6 +151,10 @@ public class EarthquakeArchive {
 
     public void destroy() {
         GlobalQuake.instance.stopService(executor);
+    }
+
+    public void setServesPlayground(boolean isForPlayground) {
+        servesPlayground = isForPlayground;
     }
 
 }

@@ -80,7 +80,9 @@ public abstract class GlobalQuake {
     }
 
     public EarthquakeArchive createArchive() {
-        return new EarthquakeArchive().loadArchive();
+        EarthquakeArchive archive = new EarthquakeArchive();
+        archive.setServesPlayground(isSimulation());
+        return archive.loadArchive();
     }
 
     public GlobalQuake initStations() {
