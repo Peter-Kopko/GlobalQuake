@@ -76,15 +76,6 @@ public class GlobalQuakePlayground extends GlobalQuakeLocal {
         return playgroundStartMillis + (System.currentTimeMillis() - createdAtMillis);
     }
 
-    /*
-    @Override
-    public EarthquakeArchive createArchive() {
-        EarthquakeArchive archive = new EarthquakeArchive();
-        archive.setServesPlayground(isSimulation());
-        return archive.loadArchive();
-    }
-    */
-
     public Collection<Earthquake> getPlaygroundEarthquakes() {
         return playgroundEarthquakes;
     }
