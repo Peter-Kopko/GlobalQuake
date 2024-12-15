@@ -18,18 +18,15 @@ public class GlobalStationManagerPlayground extends GlobalStationManager {
     public void initStations(StationDatabaseManager databaseManager) {
 
     }
-
+/*
     public void generateRandomStations(int count, double radius, double fromLat, double fromLon) {
         Random r = new Random();
         newStations();
         List<PlaygroundStation> list = new ArrayList<>();
         int created = 0;
         int fails = 0;
-        while (created < count) {
-            if (fails > 500) {
-                Logger.warn("Station generation aborted!");
-                break;
-            }
+        while (created < count && fails <= 500) {
+
             double[] coords = randomCoords(r);
             double lat = coords[0];
             double lon = coords[1];
@@ -44,11 +41,13 @@ public class GlobalStationManagerPlayground extends GlobalStationManager {
             }
 
             int id = nextID.incrementAndGet();
-
             String name = "Dummy #%d".formatted(id);
-            list.add(new PlaygroundStation(name, lat, lon, 0, nextID.getAndIncrement(), PlaygroundStation.DEFAULT_SENSITIVITY));
+            list.add(new PlaygroundStation(name, lat, lon, 0, id, PlaygroundStation.DEFAULT_SENSITIVITY));
             created++;
             fails = 0;
+        }
+        if (fails > 500) {
+            Logger.warn("Station generation aborted!");
         }
 
         this.stations.forEach(AbstractStation::clear);
@@ -56,6 +55,46 @@ public class GlobalStationManagerPlayground extends GlobalStationManager {
         this.stations.addAll(list);
         createListOfClosestStations(this.stations);
     }
+*/
+
+    public void generateRandomStations(int count, double radius, double fromLat, double fromLon) {
+        Random r = new Random();
+        newStations(); // Presuming this resets the state for generating stations
+
+        List<PlaygroundStation> list = new ArrayList<>();
+        while (list.size() < count) {
+            // Generate random coordinates
+            double[] coords = randomCoords(r);
+            double lat = coords[0];
+            double lon = coords[1];
+
+            // Check if the coordinates are within the desired radius
+            if (GeoUtils.greatCircleDistance(lat, lon, fromLat, fromLon) > radius) {
+                continue;
+            }
+
+            // Check if the location is on land
+            if (Regions.isOcean(lat, lon, false)) {
+                continue;
+            }
+
+            // Create and add station
+            int id = nextID.incrementAndGet();
+            String name = "Dummy #%d".formatted(id);
+            list.add(new PlaygroundStation(name, lat, lon, 0, id, PlaygroundStation.DEFAULT_SENSITIVITY));
+        }
+
+        // Replace old stations with new ones
+        synchronized (this.stations) {
+            this.stations.forEach(AbstractStation::clear);
+            this.stations.clear();
+            this.stations.addAll(list);
+        }
+
+        // Update closest stations
+        createListOfClosestStations(this.stations);
+    }
+
 
     private void newStations() {
         this.indexing = UUID.randomUUID();
