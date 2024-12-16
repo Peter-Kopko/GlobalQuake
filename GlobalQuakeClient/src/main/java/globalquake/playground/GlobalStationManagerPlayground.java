@@ -18,44 +18,6 @@ public class GlobalStationManagerPlayground extends GlobalStationManager {
     public void initStations(StationDatabaseManager databaseManager) {
 
     }
-/*
-    public void generateRandomStations(int count, double radius, double fromLat, double fromLon) {
-        Random r = new Random();
-        newStations();
-        List<PlaygroundStation> list = new ArrayList<>();
-        int created = 0;
-        int fails = 0;
-        while (created < count && fails <= 500) {
-
-            double[] coords = randomCoords(r);
-            double lat = coords[0];
-            double lon = coords[1];
-            double distGCD = GeoUtils.greatCircleDistance(lat, lon, fromLat, fromLon);
-            if (distGCD > radius) {
-                continue;
-            }
-
-            if (Regions.isOcean(lat, lon, true)) {
-                fails++;
-                continue;
-            }
-
-            int id = nextID.incrementAndGet();
-            String name = "Dummy #%d".formatted(id);
-            list.add(new PlaygroundStation(name, lat, lon, 0, id, PlaygroundStation.DEFAULT_SENSITIVITY));
-            created++;
-            fails = 0;
-        }
-        if (fails > 500) {
-            Logger.warn("Station generation aborted!");
-        }
-
-        this.stations.forEach(AbstractStation::clear);
-        this.stations.clear();
-        this.stations.addAll(list);
-        createListOfClosestStations(this.stations);
-    }
-*/
 
     public void generateRandomStations(int count, double radius, double fromLat, double fromLon) {
         Random r = new Random();
@@ -94,7 +56,6 @@ public class GlobalStationManagerPlayground extends GlobalStationManager {
         // Update closest stations
         createListOfClosestStations(this.stations);
     }
-
 
     private void newStations() {
         this.indexing = UUID.randomUUID();
